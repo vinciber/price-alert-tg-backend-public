@@ -1,0 +1,50 @@
+name: Update ETF Data
+
+on:
+  schedule:
+    # Runs at 06:00 UTC (07:00 Italy) - morning check
+    - cron: '0 6 * * *'
+    # Runs at 22:00 UTC (23:00 Italy) - after Wall Street close
+    - cron: '0 22 * * *'
+  workflow_dispatch: # Allows manual trigger via "Run workflow" button
+
+permissions:
+  contents: write # Required to commit the JSON file back to repo
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install Python dependencies
+        run: pip install -r execution/scrapers/requirements.txt
+
+      - name: Run ETF Scraper
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+        run: python execution/scrapers/etf_scraper.py
+
+      - name: Commit and Push updated JSON
+        run: |
+          git config --global user.name 'ETF Bot'
+          git config --global user.email 'bot@noreply.github.com'
+          git add data/etf_status.json
+          # Commit only if file changed, exit 0 if no changes
+          git diff --cached --quiet || git commit -m "📊 Auto-update ETF data $(date -u +%Y-%m-%d)"
+          git push

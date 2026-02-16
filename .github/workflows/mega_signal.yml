@@ -1,0 +1,51 @@
+name: Mega Signal Analysis
+
+on:
+  schedule:
+    # Esecuzione ogni ora per catturare trend e setup 1h
+    - cron: '10 * * * *' 
+  workflow_dispatch:
+
+jobs:
+  mega-signal-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Ensure requests is installed explicitly as it's key
+          pip install requests
+
+      - name: Run Mega Signal Script
+        env:
+          # Vercel KV Secrets
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          
+          # API Secrets
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          
+          # Microservices
+          PANDAS_SERVICE_URL: ${{ secrets.PANDAS_SERVICE_URL }}
+          MICROSERVICE_SECRET_KEY: ${{ secrets.MICROSERVICE_SECRET_KEY }}
+          
+          # Other
+          LOG_LEVEL: INFO
+          
+        run: |
+          echo "🚀 Starting Mega Signal Analysis..."
+          python execution/scripts/run_mega_signal.py
+          echo "✅ Analysis Complete"

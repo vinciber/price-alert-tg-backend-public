@@ -1,0 +1,54 @@
+name: Check Mobile Alerts
+
+on:
+  schedule:
+    # Run every 15 minutes (minimum reasonable interval aligned with Android WorkManager)
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Ensure requests is installed explicitly
+          pip install requests
+
+      - name: Run Alert Checker
+        env:
+          # Vercel KV Secrets
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          
+          # API Secrets
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          
+          # Email Secrets
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL_OVERRIDE: ${{ secrets.NOTIFY_EMAIL_OVERRIDE }}
+          
+          # Logging
+          LOG_LEVEL: INFO
+          
+        run: |
+          echo "🚀 Checking Mobile Alerts..."
+          # Set PYTHONPATH to current directory so utils can be imported
+          export PYTHONPATH=$PYTHONPATH:.
+          python execution/scripts/check_mobile_alerts.py
+          echo "✅ Checks Complete"
