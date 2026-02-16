@@ -47,4 +47,5 @@ jobs:
           git add data/etf_status.json
           # Commit only if file changed, exit 0 if no changes
           git diff --cached --quiet || git commit -m "📊 Auto-update ETF data $(date -u +%Y-%m-%d)"
-          git push
+          git pull --rebase origin main
+          git push https://${{ secrets.PRIVATE_REPO_PAT }}@github.com/vinciber/price-alert-tg-backend.git HEAD:main

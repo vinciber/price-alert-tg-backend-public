@@ -47,5 +47,5 @@ jobs:
             git add public/data/news_feed_*.json
             git commit -m "Update news feed (v2)"
             git pull --rebase origin main
-            git push origin main
+            git push https://${{ secrets.PRIVATE_REPO_PAT }}@github.com/vinciber/price-alert-tg-backend.git HEAD:main
           )
