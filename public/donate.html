@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Price Alert</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #1a1a2e;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .paypal-button-container {
+            min-height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="loading">
+            <h1>Loading secure payment...</h1>
+            <p>Please wait a moment.</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <h1 id="title-text">Become a Supporter</h1>
+            <p id="desc-text">Support the development of Price Alert and get exclusive benefits.</p>
+            <div id="paypal-container-97CES56NF75HQ" class="paypal-button-container"></div>
+        </div>
+    </div>
+
+    <!-- Import PayPal JS SDK with Hosted Buttons component -->
+    <script
+        src="https://www.paypal.com/sdk/js?client-id=BAAoKp7SBxSbN95_Gft8IjYaQwHGKlXun-K9ktnXdadh5pv67-yhnwBgJKuLAkTJ84u6powVlGWm22z1T8&components=hosted-buttons&disable-funding=venmo&currency=EUR">
+        </script>
+
+    <script>
+        // 1. Get URL parameters (passed from Flutter app)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        const lang = urlParams.get('lang') || 'en';
+
+        // 2. Simple localization for the page
+        const i18n = {
+            'it': {
+                title: "Diventa un Supporter",
+                desc: "Sostieni lo sviluppo di Price Alert e ottieni vantaggi esclusivi."
+            },
+            'en': {
+                title: "Become a Supporter",
+                desc: "Support the development of Price Alert and get exclusive benefits."
+            }
+        };
+
+        if (i18n[lang]) {
+            document.getElementById('title-text').innerText = i18n[lang].title;
+            document.getElementById('desc-text').innerText = i18n[lang].desc;
+        }
+
+        // Ensure we have a user_id
+        if (!userId) {
+            document.getElementById('loading').innerHTML = "<h1>Error</h1><p>User ID is missing. Please initiate the donation from the app.</p>";
+        } else {
+            // Show content
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            // 3. Render PayPal Hosted Button
+            paypal.HostedButtons({
+                hostedButtonId: "97CES56NF75HQ",
+                customId: userId // This links the webhook to the user!
+            }).render("#paypal-container-97CES56NF75HQ");
+        }
+    </script>
+
+</body>
+
+</html>
