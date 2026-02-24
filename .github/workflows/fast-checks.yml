@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements-worker.txt ]; then pip install -r requirements-worker.txt; fi
           # Ensure critical deps
-          pip install requests pandas numpy
+          pip install requests pandas numpy supabase pytz
 
       - name: Run Fast Checks
         env:
