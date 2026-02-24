@@ -1,8 +1,8 @@
 name: Fast Crypto Checks
 
 on:
-  # schedule:
-  #   - cron: '*/10 * * * *'
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
   push:
     branches:
