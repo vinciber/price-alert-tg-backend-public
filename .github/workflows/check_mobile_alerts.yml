@@ -49,6 +49,7 @@ jobs:
           
           # Logging
           LOG_LEVEL: INFO
+          PROXY_URL: ${{ secrets.PROXY_URL }}
           
         run: |
           echo "🚀 Checking Mobile Alerts..."
