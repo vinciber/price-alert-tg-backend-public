@@ -24,9 +24,13 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Ensure requests is installed explicitly
-          pip install requests
+          if [ -f requirements-worker.txt ]; then 
+            pip install -r requirements-worker.txt
+          elif [ -f requirements.txt ]; then 
+            pip install -r requirements.txt
+          fi
+          # Ensure critical packages are available
+          pip install requests websocket-client
 
       - name: Run Alert Checker
         env:
