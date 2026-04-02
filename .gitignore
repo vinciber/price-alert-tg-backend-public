@@ -5,3 +5,6 @@ public/
 .vscode/
 __pycache__/
 *.log
+
+# Documentation
+technical_architecture_report.md
