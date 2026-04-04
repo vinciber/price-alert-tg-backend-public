@@ -37,6 +37,9 @@ jobs:
           pip install feedparser beautifulsoup4 python-dateutil requests lxml
 
       - name: Run News Scraper
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: python execution/scrapers/news_collector.py
 
       - name: Commit and Push

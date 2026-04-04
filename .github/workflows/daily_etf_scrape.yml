@@ -38,6 +38,7 @@ jobs:
       - name: Run ETF Scraper
         env:
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: python execution/scrapers/etf_scraper.py
 
       - name: Commit and Push updated JSON

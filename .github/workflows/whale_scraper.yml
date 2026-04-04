@@ -30,6 +30,9 @@ jobs:
         pip install -r requirements-scraper.txt
     
     - name: Run Scraper
+      env:
+        APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+        BACKEND_URL: ${{ secrets.BACKEND_URL }}
       run: python execution/scrapers/whale_alert_scraper.py
       
     - name: Check for changes
