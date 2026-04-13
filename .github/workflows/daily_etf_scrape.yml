@@ -43,8 +43,8 @@ jobs:
 
       - name: Commit and Push updated JSON
         run: |
-          git config --global user.name 'ETF Bot'
-          git config --global user.email 'bot@noreply.github.com'
+          git config --global user.name 'vinciber'
+          git config --global user.email 'vinciberlr@gmail.com'
           git add public/data/etf_status.json
           # Commit only if file changed, exit 0 if no changes
           git diff --cached --quiet || git commit -m "📊 Auto-update ETF data $(date -u +%Y-%m-%d)"
