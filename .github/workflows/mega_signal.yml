@@ -41,6 +41,7 @@ jobs:
           # API Secrets
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           
           # Microservices
           PANDAS_SERVICE_URL: ${{ secrets.PANDAS_SERVICE_URL }}
