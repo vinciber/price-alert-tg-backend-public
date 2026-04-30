@@ -1,0 +1,39 @@
+name: Patoshi State Initializer (One-Time)
+
+on:
+  workflow_dispatch:  # manual trigger only
+
+permissions:
+  contents: read
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # full 440-page scrape ~9 min at 1.2s/page
+
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dotenv
+
+      - name: Run Patoshi Initializer
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          LOG_LEVEL: INFO
+        run: |
+          echo "🚀 Scraping all 440 Patoshi pages (~9 min)..."
+          python execution/scrapers/scrape_patoshi_wallets.py
+          echo "✅ Patoshi state initialized in KV"
