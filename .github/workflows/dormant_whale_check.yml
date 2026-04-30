@@ -2,9 +2,9 @@ name: Dormant Whale Wakeup Check
 
 on:
   schedule:
-    # Every 6 hours at :08 UTC (00:08, 06:08, 12:08, 18:08)
-    # Offset from whale_scraper (:00) and other heavy jobs to avoid resource contention
-    - cron: '8 0,6,12,18 * * *'
+    # Every hour at :08 UTC — Patoshi check costs 1 HTTP req when idle, curated wallets ~8 calls
+    # Offset from whale_scraper (:00) and signals_scan (:25) to avoid resource contention
+    - cron: '8 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -37,6 +37,7 @@ jobs:
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ADMIN_TELEGRAM_CHAT_ID: ${{ secrets.ADMIN_TELEGRAM_CHAT_ID }}
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
