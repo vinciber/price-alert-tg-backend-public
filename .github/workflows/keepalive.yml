@@ -1,0 +1,26 @@
+name: Keepalive
+
+# Prevents GitHub from auto-disabling scheduled (cron) workflows after
+# 60 days of repository inactivity. Scheduled runs do NOT count as activity,
+# only commits/pushes do. This makes a dummy commit ONLY when the latest
+# commit is older than `time_elapsed` days, so it self-throttles and stays
+# safely under the 60-day limit without spamming the history.
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # every Monday at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keepalive
+        uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          time_elapsed: 45
