@@ -3,8 +3,12 @@ name: Keepalive
 # Prevents GitHub from auto-disabling scheduled (cron) workflows after
 # 60 days of repository inactivity. Scheduled runs do NOT count as activity,
 # only commits/pushes do. This makes a dummy commit ONLY when the latest
-# commit is older than `time_elapsed` days, so it self-throttles and stays
-# safely under the 60-day limit without spamming the history.
+# commit is older than 45 days, so it self-throttles and stays safely
+# under the 60-day limit without spamming the history.
+#
+# Implemented with plain git commands (no third-party action) because
+# gautamkrishnar/keepalive-workflow was blocked by GitHub for a ToS
+# violation on the author's account, breaking every run.
 
 on:
   schedule:
@@ -12,7 +16,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: write
 
 jobs:
@@ -20,7 +23,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Keepalive
-        uses: gautamkrishnar/keepalive-workflow@v2
         with:
-          time_elapsed: 45
+          fetch-depth: 2
+      - name: Keepalive commit if inactive
+        run: |
+          last_commit_date=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          elapsed_days=$(( (now - last_commit_date) / 86400 ))
+          echo "Days since last commit: $elapsed_days"
+          if [ "$elapsed_days" -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive commit to prevent workflow disabling"
+            git push
+          else
+            echo "Repository active recently, skipping keepalive commit."
+          fi
