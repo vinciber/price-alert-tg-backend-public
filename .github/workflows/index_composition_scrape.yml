@@ -1,0 +1,41 @@
+name: Update Index Compositions
+
+on:
+  schedule:
+    # Mensile: giorno 2 alle 04:00 UTC (le holdings di fine mese sono pubblicate).
+    - cron: '0 4 2 * *'
+  workflow_dispatch: # trigger manuale
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas requests
+
+      - name: Run Index Composition Scraper
+        run: python execution/scrapers/etf_composition_scraper.py
+
+      - name: Commit and Push updated JSON
+        run: |
+          git config --global user.name 'vinciber'
+          git config --global user.email 'vinciberlr@gmail.com'
+          git add public/data/index_compositions.json
+          git diff --cached --quiet || git commit -m "🌍 Auto-update index compositions $(date -u +%Y-%m-%d)"
+          git pull --rebase origin main
+          git push https://${{ secrets.PRIVATE_REPO_PAT }}@github.com/vinciber/price-alert-tg-backend.git HEAD:main
