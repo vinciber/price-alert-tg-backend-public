@@ -8,15 +8,21 @@ name: Render Social Slides
 # gira poche volte al giorno. I runner Actions il browser ce l'hanno già —
 # stesso motivo per cui daily_etf_scrape.yml usa setup-chrome.
 #
-# Il backend, quando spedisce una bozza a 5★, accoda l'evento nella chiave KV
-# X_DRAFT_SLIDE_QUEUE. Questo workflow la svuota, genera i due caroselli
-# (notizia + tutorial) e li manda in album sul bot delle bozze con le
-# didascalie pronte da copiare.
+# Il backend, quando spedisce una bozza, propone l'evento come CANDIDATO nel
+# pool KV (SOCIAL_POOL). Non pubblica: a decidere è il palinsesto
+# (utils/social_planner.py), due slot al giorno — il primo il carosello
+# tecnico, il secondo il "come si attiva" dello stesso alert.
+#
+# Questo workflow chiede al palinsesto se c'è uno slot aperto: se sì genera
+# QUEL deck e lo manda in album sul bot delle bozze con le didascalie pronte
+# da copiare. Fuori dagli slot esce senza fare nulla.
 
 on:
   schedule:
-    # Ogni 30 minuti: per un contenuto social la latenza è irrilevante, e la
-    # coda regge fino a 20 eventi.
+    # Ogni 30 minuti: non è la cadenza di pubblicazione (quella la decidono gli
+    # slot) ma la frequenza con cui si controlla se uno slot è aperto. La
+    # finestra di uno slot è più larga, quindi un run fallito si recupera al
+    # giro dopo.
     - cron: '*/30 * * * *'
   workflow_dispatch: # generazione a mano quando serve subito
 
@@ -47,13 +53,17 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Render and send decks
+      - name: Render and send the scheduled deck
         env:
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
           X_DRAFT_TELEGRAM_BOT_TOKEN: ${{ secrets.X_DRAFT_TELEGRAM_BOT_TOKEN }}
           X_DRAFT_TELEGRAM_CHAT_ID: ${{ secrets.X_DRAFT_TELEGRAM_CHAT_ID }}
-        run: python3 tools/slides/generate_deck.py --from-slide-queue --send
+          # Orari degli slot (UTC) e ampiezza della finestra: si tarano da qui
+          # senza toccare il codice. Vuoti = 11:00 e 17:30 UTC.
+          SOCIAL_SLOTS_UTC: ${{ vars.SOCIAL_SLOTS_UTC }}
+          SOCIAL_SLOT_WINDOW_MIN: ${{ vars.SOCIAL_SLOT_WINDOW_MIN }}
+        run: python3 tools/slides/generate_deck.py --plan --send
 
       # Le slide restano scaricabili per una settimana: se una viene male, si
       # guarda il PNG senza doverla rigenerare.
