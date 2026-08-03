@@ -1,0 +1,67 @@
+name: Render Social Slides
+
+# Rende i caroselli Instagram delle bozze a 5 stelle.
+#
+# Perché qui e non su Railway: il render vuole Chrome, e il container del
+# backend non ne ha uno (nixpacks installa solo python e node). Aggiungerlo
+# significherebbe ~300 MB in più su un servizio always-on, per un lavoro che
+# gira poche volte al giorno. I runner Actions il browser ce l'hanno già —
+# stesso motivo per cui daily_etf_scrape.yml usa setup-chrome.
+#
+# Il backend, quando spedisce una bozza a 5★, accoda l'evento nella chiave KV
+# X_DRAFT_SLIDE_QUEUE. Questo workflow la svuota, genera i due caroselli
+# (notizia + tutorial) e li manda in album sul bot delle bozze con le
+# didascalie pronte da copiare.
+
+on:
+  schedule:
+    # Ogni 30 minuti: per un contenuto social la latenza è irrilevante, e la
+    # coda regge fino a 20 eventi.
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # generazione a mano quando serve subito
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Private Backend
+        uses: actions/checkout@v4
+        with:
+          repository: vinciber/price-alert-tg-backend
+          token: ${{ secrets.PRIVATE_REPO_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      # Il generatore usa solo la stdlib; requests serve unicamente per
+      # l'invio dell'album a Telegram.
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Render and send decks
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          X_DRAFT_TELEGRAM_BOT_TOKEN: ${{ secrets.X_DRAFT_TELEGRAM_BOT_TOKEN }}
+          X_DRAFT_TELEGRAM_CHAT_ID: ${{ secrets.X_DRAFT_TELEGRAM_CHAT_ID }}
+        run: python3 tools/slides/generate_deck.py --from-slide-queue --send
+
+      # Le slide restano scaricabili per una settimana: se una viene male, si
+      # guarda il PNG senza doverla rigenerare.
+      - name: Upload slides
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slides
+          path: temp/slides_out/**
+          if-no-files-found: ignore
+          retention-days: 7
