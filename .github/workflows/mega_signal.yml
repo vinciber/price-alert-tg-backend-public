@@ -3,7 +3,7 @@ name: Mega Signal Analysis
 on:
   schedule:
     # Esecuzione ogni ora per catturare trend e setup 1h
-    - cron: '10 * * * *' 
+    - cron: '10 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -24,33 +24,50 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements-worker.txt ]; then 
+          if [ -f requirements-worker.txt ]; then
             pip install -r requirements-worker.txt
-          elif [ -f requirements.txt ]; then 
+          elif [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
           # Ensure critical packages are available
           pip install requests websocket-client
+
+      - name: Diagnose env (boolean only — no values)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python3 -c "
+          import os
+          print('SUPABASE_URL present:', bool(os.environ.get('SUPABASE_URL')))
+          print('SUPABASE_KEY present:', bool(os.environ.get('SUPABASE_KEY')))
+          print('KV_REST_API_URL present:', bool(os.environ.get('KV_REST_API_URL')))
+          print('TELEGRAM_BOT_TOKEN present:', bool(os.environ.get('TELEGRAM_BOT_TOKEN')))
+          "
 
       - name: Run Mega Signal Script
         env:
           # Vercel KV Secrets
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
-          
+
           # API Secrets
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          
+
           # Microservices
           PANDAS_SERVICE_URL: ${{ secrets.PANDAS_SERVICE_URL }}
           MICROSERVICE_SECRET_KEY: ${{ secrets.MICROSERVICE_SECRET_KEY }}
-          
+
+          # Database (Supabase) — previously missing from this workflow
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
           # Other
           LOG_LEVEL: INFO
           PROXY_URL: ${{ secrets.PROXY_URL }}
-          
+
         run: |
           echo "🚀 Starting Mega Signal Analysis..."
           python execution/scripts/run_mega_signal.py
