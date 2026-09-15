@@ -2,8 +2,8 @@ name: Mega Signal Analysis
 
 on:
   schedule:
-    # Esecuzione ogni ora per catturare trend e setup 1h
-    - cron: '10 * * * *'
+    # Esecuzione ogni ora al minuto 27 per evitare la congestione di inizio ora di GitHub Actions
+    - cron: '27 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -36,13 +36,19 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
         run: |
           python3 -c "
           import os
           print('SUPABASE_URL present:', bool(os.environ.get('SUPABASE_URL')))
           print('SUPABASE_KEY present:', bool(os.environ.get('SUPABASE_KEY')))
-          print('KV_REST_API_URL present:', bool(os.environ.get('KV_REST_API_URL')))
+          print('BACKEND_URL present:', bool(os.environ.get('BACKEND_URL')))
+          print('APP_SECRET_KEY present:', bool(os.environ.get('APP_SECRET_KEY')))
           print('TELEGRAM_BOT_TOKEN present:', bool(os.environ.get('TELEGRAM_BOT_TOKEN')))
+          print('KV_REST_API_URL present:', bool(os.environ.get('KV_REST_API_URL')))
           "
 
       - name: Run Mega Signal Script
@@ -60,9 +66,12 @@ jobs:
           PANDAS_SERVICE_URL: ${{ secrets.PANDAS_SERVICE_URL }}
           MICROSERVICE_SECRET_KEY: ${{ secrets.MICROSERVICE_SECRET_KEY }}
 
-          # Database (Supabase) — previously missing from this workflow
+          # Database (Supabase)
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+          # Backend Proxy (Fase 2.6)
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
 
           # Other
           LOG_LEVEL: INFO
