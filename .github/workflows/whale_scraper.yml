@@ -31,7 +31,7 @@ jobs:
     
     - name: Run Scraper
       env:
-        APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+        MICROSERVICE_SECRET_KEY: ${{ secrets.MICROSERVICE_SECRET_KEY }}
         BACKEND_URL: ${{ secrets.BACKEND_URL }}
       run: python execution/scrapers/whale_alert_scraper.py
       
